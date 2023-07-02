@@ -109,10 +109,12 @@ export const formatResult = (result: string) => {
   return title[title.length - 1];
 };
 
+const graphName = getUserConfiguredGraphPath().split("/")[getUserConfiguredGraphPath().split("/").length - 1];
+export const logseqUrl = encodeURI(`logseq://graph/${graphName}`);
+
 export const formatFilePath = (pageName: string) => {
-  const dbName = getUserConfiguredGraphPath().split("/")[getUserConfiguredGraphPath().split("/").length - 1];
   const title = pageName.split("/")[pageName.split("/").length - 1];
-  const finalURL = encodeURI(`logseq://graph/${dbName}?page=${title}`);
+  const finalURL = encodeURI(`${logseqUrl}?page=${title}`);
   return finalURL;
 };
 
