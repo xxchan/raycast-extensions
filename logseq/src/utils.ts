@@ -123,14 +123,22 @@ const getCurrentTime = () => {
 };
 
 export const addLeadingTimeToContentIfNecessary = (content: string) => {
-  let result = content;
+  // content contains TODO
+  const isTodo = content.includes("TODO");
+
+  // remove TODO
+  let result = content.replace("TODO", "");
 
   if (getPreferenceValues().addQuickCaptureTag) {
     result = `[[quick capture]]: ` + result;
   }
 
   if (getPreferenceValues().insertTime) {
-    result = `**${getCurrentTime()}** ` + result;
+    result = `${getCurrentTime()} ` + result;
+  }
+
+  if (isTodo) {
+    result = `LATER ` + result;
   }
 
   return result;
