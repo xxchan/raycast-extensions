@@ -9,7 +9,7 @@ export default function Command() {
   useEffect(() => {
     validateUserConfigGraphPath().catch((e) => {
       showGraphPathInvalidToast();
-      throw "Folder Does not Exist";
+      throw `Folder Does not Exist: ${e}`;
     });
   }, [search]);
 
@@ -45,8 +45,8 @@ export default function Command() {
 }
 
 function SearchListItem({ searchResult }: { searchResult: SearchResult }) {
+  // console.debug('SearchListItem', searchResult.url);
   //This is what happens when the item is clicked
-  console.log(searchResult.url);
   return (
     <List.Item
       title={searchResult.name}
@@ -155,15 +155,33 @@ async function logseqReq(method: string, args: any[]): Promise<any> {
 }
 
 async function performSearch(searchText: string): Promise<SearchResponse> {
+  if (!searchText) {
+    console.debug("empty search text, returning empty results")
+    return {
+      blocks: [],
+      pages: [],
+      "pages-content": [],
+    };
+  }
+
   const resp = (await logseqReq("logseq.search", [searchText]).then((response) => response.json())) as SearchResponse;
   if (resp) {
     for (const block of resp.blocks) {
+
       const meta = await logseqReq("logseq.Editor.getBlock", [block["block/uuid"]]).then((response) => response.json());
+      if (!meta) {
+        console.error("logseq.search returned an invalid block. Maybe re-index is needed.", block);
+        continue;
+      }
       const page = await logseqReq("logseq.Editor.getPage", [meta["page"]["id"]]).then((response) => response.json());
+      if (!page) {
+        console.error("The block doesn't have a page. Maybe re-index is needed.", block, meta);
+        continue;
+      }
       block.pagename = page["originalName"];
     }
   } else {
-    console.error("null response");
+    console.error("logseq.search returns null, searchText: ", searchText);
   }
   return resp;
 }
